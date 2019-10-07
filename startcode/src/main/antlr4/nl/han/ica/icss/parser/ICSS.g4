@@ -40,4 +40,33 @@ ASSIGNMENT_OPERATOR: ':=';
 
 //--- PARSER: ---
 
-stylesheet: EOF;
+stylesheet: (variables | elements)+ EOF;
+variables: variable+;
+elements: element+;
+
+variable: variablename assignment (value | change)+ variableend;
+variablename: CAPITAL_IDENT;
+variableend: SEMICOLON;
+
+element: elementname elementopen (condition | property)+ elementend;
+elementname: (LOWER_IDENT | ID_IDENT | CLASS_IDENT);
+elementopen: OPEN_BRACE;
+elementend: CLOSE_BRACE;
+
+condition:conditionstatement conditionmet;
+
+conditionstatement: conditionopen variablename conditionend ;
+conditionopen: IF BOX_BRACKET_OPEN;
+conditionend: BOX_BRACKET_CLOSE;
+
+conditionmet: elementopen (condition | property)+ elementend;
+
+property: propertyname assignment (value | change)+ propertyend;
+propertyname: LOWER_IDENT;
+propertyend: SEMICOLON;
+
+assignment: (COLON | ASSIGNMENT_OPERATOR);
+value: (COLOR | PIXELSIZE | PERCENTAGE | TRUE | FALSE | CAPITAL_IDENT);
+change: operator by;
+operator:PLUS | MIN | MUL;
+by: TRUE | FALSE | SCALAR | PIXELSIZE | PERCENTAGE;
