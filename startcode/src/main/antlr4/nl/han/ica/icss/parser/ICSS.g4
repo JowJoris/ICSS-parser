@@ -40,33 +40,24 @@ ASSIGNMENT_OPERATOR: ':=';
 
 //--- PARSER: ---
 
-stylesheet: (variables | elements)+ EOF;
-variables: variable+;
-elements: element+;
+stylesheet: (variableassignment | stylerule)+ EOF;
+stylerule: selector OPEN_BRACE body CLOSE_BRACE;
 
-variable: variablename assignment (value | change)+ variableend;
-variablename: CAPITAL_IDENT;
-variableend: SEMICOLON;
+variableassignment: variablereference ASSIGNMENT_OPERATOR (value | operation)+ SEMICOLON;
+variablereference: CAPITAL_IDENT;
 
-element: elementname elementopen (condition | property)+ elementend;
-elementname: (LOWER_IDENT | ID_IDENT | CLASS_IDENT);
-elementopen: OPEN_BRACE;
-elementend: CLOSE_BRACE;
+selector: LOWER_IDENT | ID_IDENT | CLASS_IDENT;
+body: (condition | property)+;
 
-condition:conditionstatement conditionmet;
+condition: conditionstatement conditionmet;
 
-conditionstatement: conditionopen variablename conditionend ;
-conditionopen: IF BOX_BRACKET_OPEN;
-conditionend: BOX_BRACKET_CLOSE;
+conditionstatement: IF BOX_BRACKET_OPEN variablereference BOX_BRACKET_CLOSE ;
 
-conditionmet: elementopen (condition | property)+ elementend;
+conditionmet: OPEN_BRACE (condition | property)+ CLOSE_BRACE;
 
-property: propertyname assignment (value | change)+ propertyend;
+property: propertyname COLON (value | operation)+ SEMICOLON;
 propertyname: LOWER_IDENT;
-propertyend: SEMICOLON;
 
-assignment: (COLON | ASSIGNMENT_OPERATOR);
-value: (COLOR | PIXELSIZE | PERCENTAGE | TRUE | FALSE | CAPITAL_IDENT);
-change: operator by;
+value: COLOR | PIXELSIZE | PERCENTAGE | TRUE | FALSE | CAPITAL_IDENT | SCALAR | variablereference;
+operation: operator value;
 operator:PLUS | MIN | MUL;
-by: TRUE | FALSE | SCALAR | PIXELSIZE | PERCENTAGE;
