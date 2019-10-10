@@ -23,7 +23,7 @@ CLASS_IDENT: '.' [a-z0-9\-]+;
 
 //General identifiers
 LOWER_IDENT: [a-z] [a-z0-9\-]*;
-CAPITAL_IDENT: [A-Z] [A-Za-z0-9_]*;
+CAPITAL_IDENT: [A-Z]+[A-Za-z0-9_]*;
 
 //All whitespace is skipped
 WS: [ \t\r\n]+ -> skip;

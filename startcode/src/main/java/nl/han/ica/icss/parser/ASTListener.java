@@ -4,6 +4,9 @@ import java.util.Stack;
 
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
+import nl.han.ica.icss.ast.operations.AddOperation;
+import nl.han.ica.icss.ast.operations.MultiplyOperation;
+import nl.han.ica.icss.ast.operations.SubtractOperation;
 import nl.han.ica.icss.ast.selectors.ClassSelector;
 import nl.han.ica.icss.ast.selectors.IdSelector;
 import nl.han.ica.icss.ast.selectors.TagSelector;
@@ -57,22 +60,26 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterVariableassignment(ICSSParser.VariableassignmentContext ctx) {
-
+        VariableAssignment variableAssignment = new VariableAssignment();
+        this.currentContainer.peek().addChild(variableAssignment);
+        this.currentContainer.push(variableAssignment);
     }
 
     @Override
     public void exitVariableassignment(ICSSParser.VariableassignmentContext ctx) {
-
+        this.currentContainer.pop();
     }
 
     @Override
     public void enterVariablereference(ICSSParser.VariablereferenceContext ctx) {
-
+        VariableReference variableReference = new VariableReference(ctx.getText());
+        this.currentContainer.peek().addChild(variableReference);
+        this.currentContainer.push(variableReference);
     }
 
     @Override
     public void exitVariablereference(ICSSParser.VariablereferenceContext ctx) {
-
+        this.currentContainer.pop();
     }
 
     @Override
@@ -148,20 +155,28 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterLiteral(ICSSParser.LiteralContext ctx) {
-        Literal literal;
-        if (ctx.getText().startsWith("#")) {
-            literal = new ColorLiteral(ctx.getText());
-        } else if (ctx.getText().endsWith("px")) {
-            literal = new PixelLiteral(ctx.getText());
-        } else if (ctx.getText().endsWith("%")) {
-            literal = new PercentageLiteral(ctx.getText());
-        } else if (ctx.getText().equals("TRUE") || ctx.getText().equals("FALSE")) {
-            literal = new BoolLiteral(ctx.getText());
+        if(ctx.getText().matches("[A-Z]+[A-Za-z0-9_]*")
+                && !ctx.getText().equals("TRUE")
+                && !ctx.getText().equals("FALSE")){
+            VariableReference variableReference = new VariableReference(ctx.getText());
+            this.currentContainer.peek().addChild(variableReference);
+            this.currentContainer.push(variableReference);
         } else {
-            literal = new ScalarLiteral(ctx.getText());
+            Literal literal;
+            if (ctx.getText().startsWith("#")) {
+                literal = new ColorLiteral(ctx.getText());
+            } else if (ctx.getText().endsWith("px")) {
+                literal = new PixelLiteral(ctx.getText());
+            } else if (ctx.getText().endsWith("%")) {
+                literal = new PercentageLiteral(ctx.getText());
+            } else if (ctx.getText().equals("TRUE") || ctx.getText().equals("FALSE")) {
+                literal = new BoolLiteral(ctx.getText());
+            } else {
+                literal = new ScalarLiteral(ctx.getText());
+            }
+            this.currentContainer.peek().addChild(literal);
+            this.currentContainer.push(literal);
         }
-        this.currentContainer.peek().addChild(literal);
-        this.currentContainer.push(literal);
     }
 
     @Override
@@ -171,12 +186,25 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterOperation(ICSSParser.OperationContext ctx) {
-
+        Operation operation;
+        switch (ctx.getText()) {
+            case "+":
+              operation = new AddOperation();
+              break;
+            case "-":
+                operation = new SubtractOperation();
+                break;
+            default:
+                operation = new MultiplyOperation();
+                break;
+        }
+        this.currentContainer.peek().addChild(operation);
+        this.currentContainer.push(operation);
     }
 
     @Override
     public void exitOperation(ICSSParser.OperationContext ctx) {
-
+        this.currentContainer.pop();
     }
 
     @Override
