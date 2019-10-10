@@ -43,21 +43,19 @@ ASSIGNMENT_OPERATOR: ':=';
 stylesheet: (variableassignment | stylerule)+ EOF;
 stylerule: selector OPEN_BRACE body CLOSE_BRACE;
 
-variableassignment: variablereference ASSIGNMENT_OPERATOR (value | operation)+ SEMICOLON;
+variableassignment: variablereference ASSIGNMENT_OPERATOR (literal | operation)+ SEMICOLON;
 variablereference: CAPITAL_IDENT;
 
 selector: LOWER_IDENT | ID_IDENT | CLASS_IDENT;
-body: (condition | property)+;
+body: (ifclause | declaration)+;
 
-condition: conditionstatement conditionmet;
+ifclause: IF BOX_BRACKET_OPEN variablereference BOX_BRACKET_CLOSE conditionmet;
 
-conditionstatement: IF BOX_BRACKET_OPEN variablereference BOX_BRACKET_CLOSE ;
+conditionmet: OPEN_BRACE (ifclause | declaration)+ CLOSE_BRACE;
 
-conditionmet: OPEN_BRACE (condition | property)+ CLOSE_BRACE;
+declaration: property COLON (literal | operation)+ SEMICOLON;
+property: LOWER_IDENT;
 
-property: propertyname COLON (value | operation)+ SEMICOLON;
-propertyname: LOWER_IDENT;
-
-value: COLOR | PIXELSIZE | PERCENTAGE | TRUE | FALSE | CAPITAL_IDENT | SCALAR | variablereference;
-operation: operator value;
+literal: COLOR | PIXELSIZE | PERCENTAGE | TRUE | FALSE | CAPITAL_IDENT | SCALAR | variablereference;
+operation: operator literal;
 operator:PLUS | MIN | MUL;
