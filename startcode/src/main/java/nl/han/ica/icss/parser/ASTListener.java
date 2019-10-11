@@ -149,7 +149,7 @@ public class ASTListener extends ICSSBaseListener {
     public void enterIfclause(ICSSParser.IfclauseContext ctx) {
         IfClause ifClause = new IfClause();
         this.currentContainer.peek().addChild(ifClause);
-        this.currentContainer.add(ifClause);
+        this.currentContainer.push(ifClause);
     }
 
     @Override
@@ -159,6 +159,7 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterConditionmet(ICSSParser.ConditionmetContext ctx) {
+
     }
 
     @Override
@@ -188,6 +189,24 @@ public class ASTListener extends ICSSBaseListener {
     @Override
     public void exitProperty(ICSSParser.PropertyContext ctx) {
         this.currentContainer.pop();
+    }
+
+    @Override
+    public void enterLiteral(ICSSParser.LiteralContext ctx) {
+    }
+
+    @Override
+    public void exitLiteral(ICSSParser.LiteralContext ctx) {
+    }
+
+    @Override
+    public void enterValue(ICSSParser.ValueContext ctx) {
+
+    }
+
+    @Override
+    public void exitValue(ICSSParser.ValueContext ctx) {
+
     }
 
     @Override
