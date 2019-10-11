@@ -155,13 +155,14 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterLiteral(ICSSParser.LiteralContext ctx) {
+        //Check for variable
         if(ctx.getText().matches("[A-Z]+[A-Za-z0-9_]*")
                 && !ctx.getText().equals("TRUE")
                 && !ctx.getText().equals("FALSE")){
             VariableReference variableReference = new VariableReference(ctx.getText());
             this.currentContainer.peek().addChild(variableReference);
-            this.currentContainer.push(variableReference);
         } else {
+            //Check for literal
             Literal literal;
             if (ctx.getText().startsWith("#")) {
                 literal = new ColorLiteral(ctx.getText());
@@ -175,13 +176,11 @@ public class ASTListener extends ICSSBaseListener {
                 literal = new ScalarLiteral(ctx.getText());
             }
             this.currentContainer.peek().addChild(literal);
-            this.currentContainer.push(literal);
         }
     }
 
     @Override
     public void exitLiteral(ICSSParser.LiteralContext ctx) {
-        this.currentContainer.pop();
     }
 
     @Override
@@ -199,12 +198,10 @@ public class ASTListener extends ICSSBaseListener {
                 break;
         }
         this.currentContainer.peek().addChild(operation);
-        this.currentContainer.push(operation);
     }
 
     @Override
     public void exitOperation(ICSSParser.OperationContext ctx) {
-        this.currentContainer.pop();
     }
 
     @Override
