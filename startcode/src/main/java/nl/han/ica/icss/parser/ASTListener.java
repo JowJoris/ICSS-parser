@@ -102,6 +102,42 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
+    public void enterClassselector(ICSSParser.ClassselectorContext ctx) {
+        ClassSelector classSelector = new ClassSelector(ctx.getText());
+        this.currentContainer.peek().addChild(classSelector);
+        this.currentContainer.push(classSelector);
+    }
+
+    @Override
+    public void exitClassselector(ICSSParser.ClassselectorContext ctx) {
+        this.currentContainer.pop();
+    }
+
+    @Override
+    public void enterIdselector(ICSSParser.IdselectorContext ctx) {
+        IdSelector idSelector = new IdSelector(ctx.getText());
+        this.currentContainer.peek().addChild(idSelector);
+        this.currentContainer.push(idSelector);
+    }
+
+    @Override
+    public void exitIdselector(ICSSParser.IdselectorContext ctx) {
+        this.currentContainer.pop();
+    }
+
+    @Override
+    public void enterTagselector(ICSSParser.TagselectorContext ctx) {
+        TagSelector tagSelector = new TagSelector(ctx.getText());
+        this.currentContainer.peek().addChild(tagSelector);
+        this.currentContainer.push(tagSelector);
+    }
+
+    @Override
+    public void exitTagselector(ICSSParser.TagselectorContext ctx) {
+        this.currentContainer.pop();
+    }
+
+    @Override
     public void enterBody(ICSSParser.BodyContext ctx) {
     }
 
@@ -111,17 +147,18 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterIfclause(ICSSParser.IfclauseContext ctx) {
-
+        IfClause ifClause = new IfClause();
+        this.currentContainer.peek().addChild(ifClause);
+        this.currentContainer.add(ifClause);
     }
 
     @Override
     public void exitIfclause(ICSSParser.IfclauseContext ctx) {
-
+        this.currentContainer.pop();
     }
 
     @Override
     public void enterConditionmet(ICSSParser.ConditionmetContext ctx) {
-
     }
 
     @Override
@@ -154,50 +191,72 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
-    public void enterLiteral(ICSSParser.LiteralContext ctx) {
-        //Check for variable
-        if(ctx.getText().matches("[A-Z]+[A-Za-z0-9_]*")
-                && !ctx.getText().equals("TRUE")
-                && !ctx.getText().equals("FALSE")){
-            VariableReference variableReference = new VariableReference(ctx.getText());
-            this.currentContainer.peek().addChild(variableReference);
-        } else {
-            //Check for literal
-            Literal literal;
-            if (ctx.getText().startsWith("#")) {
-                literal = new ColorLiteral(ctx.getText());
-            } else if (ctx.getText().endsWith("px")) {
-                literal = new PixelLiteral(ctx.getText());
-            } else if (ctx.getText().endsWith("%")) {
-                literal = new PercentageLiteral(ctx.getText());
-            } else if (ctx.getText().equals("TRUE") || ctx.getText().equals("FALSE")) {
-                literal = new BoolLiteral(ctx.getText());
-            } else {
-                literal = new ScalarLiteral(ctx.getText());
-            }
-            this.currentContainer.peek().addChild(literal);
-        }
+    public void enterColorliteral(ICSSParser.ColorliteralContext ctx) {
+        ColorLiteral colorLiteral = new ColorLiteral(ctx.getText());
+        this.currentContainer.peek().addChild(colorLiteral);
     }
 
     @Override
-    public void exitLiteral(ICSSParser.LiteralContext ctx) {
+    public void exitColorliteral(ICSSParser.ColorliteralContext ctx) {
+
+    }
+
+    @Override
+    public void enterPixelliteral(ICSSParser.PixelliteralContext ctx) {
+        PixelLiteral pixelLiteral = new PixelLiteral(ctx.getText());
+        this.currentContainer.peek().addChild(pixelLiteral);
+    }
+
+    @Override
+    public void exitPixelliteral(ICSSParser.PixelliteralContext ctx) {
+
+    }
+
+    @Override
+    public void enterPercentageliteral(ICSSParser.PercentageliteralContext ctx) {
+        PercentageLiteral percentageLiteral = new PercentageLiteral(ctx.getText());
+        this.currentContainer.peek().addChild(percentageLiteral);
+    }
+
+    @Override
+    public void exitPercentageliteral(ICSSParser.PercentageliteralContext ctx) {
+
+    }
+
+    @Override
+    public void enterBoolliteral(ICSSParser.BoolliteralContext ctx) {
+        BoolLiteral boolLiteral = new BoolLiteral(ctx.getText());
+        this.currentContainer.peek().addChild(boolLiteral);
+    }
+
+    @Override
+    public void exitBoolliteral(ICSSParser.BoolliteralContext ctx) {
+
+    }
+
+    @Override
+    public void enterScalarliteral(ICSSParser.ScalarliteralContext ctx) {
+        ScalarLiteral scalarLiteral = new ScalarLiteral(ctx.getText());
+        this.currentContainer.peek().addChild(scalarLiteral);
+    }
+
+    @Override
+    public void exitScalarliteral(ICSSParser.ScalarliteralContext ctx) {
+
+    }
+
+    @Override
+    public void enterExpression(ICSSParser.ExpressionContext ctx) {
+
+    }
+
+    @Override
+    public void exitExpression(ICSSParser.ExpressionContext ctx) {
+
     }
 
     @Override
     public void enterOperation(ICSSParser.OperationContext ctx) {
-        Operation operation;
-        switch (ctx.getText()) {
-            case "+":
-              operation = new AddOperation();
-              break;
-            case "-":
-                operation = new SubtractOperation();
-                break;
-            default:
-                operation = new MultiplyOperation();
-                break;
-        }
-        this.currentContainer.peek().addChild(operation);
     }
 
     @Override
@@ -205,13 +264,40 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
-    public void enterOperator(ICSSParser.OperatorContext ctx) {
+    public void enterAddoperation(ICSSParser.AddoperationContext ctx) {
+        AddOperation addOperation = new AddOperation();
+        this.currentContainer.peek().addChild(addOperation);
+        this.currentContainer.push(addOperation);
 
     }
 
     @Override
-    public void exitOperator(ICSSParser.OperatorContext ctx) {
+    public void exitAddoperation(ICSSParser.AddoperationContext ctx) {
+        this.currentContainer.pop();
+    }
 
+    @Override
+    public void enterMultiplyoperation(ICSSParser.MultiplyoperationContext ctx) {
+        MultiplyOperation multiplyOperation = new MultiplyOperation();
+        this.currentContainer.peek().addChild(multiplyOperation);
+        this.currentContainer.push(multiplyOperation);
+    }
+
+    @Override
+    public void exitMultiplyoperation(ICSSParser.MultiplyoperationContext ctx) {
+        this.currentContainer.pop();
+    }
+
+    @Override
+    public void enterSubstractoperation(ICSSParser.SubstractoperationContext ctx) {
+        SubtractOperation subtractOperation = new SubtractOperation();
+        this.currentContainer.peek().addChild(subtractOperation);
+        this.currentContainer.push(subtractOperation);
+    }
+
+    @Override
+    public void exitSubstractoperation(ICSSParser.SubstractoperationContext ctx) {
+        this.currentContainer.pop();
     }
 
     @Override
