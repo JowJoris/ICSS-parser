@@ -10,13 +10,14 @@ import nl.han.ica.icss.ast.types.*;
 public class Checker {
 
     private LinkedList<HashMap<String,ExpressionType>> variableTypes;
-    private HashMap<String, ExpressionType> variableHashMap = new HashMap<>();
+    private HashMap<String, ExpressionType> variableHashMap;
 
     public void check(AST ast) {
         variableTypes = new LinkedList<>();
+        variableHashMap= new HashMap<>();
         checkVariables(ast.root);
     }
-
+/*CH01*/
     //Check if variables are defined
     private void checkVariables(ASTNode node){
         findVariableAssignment(node);
