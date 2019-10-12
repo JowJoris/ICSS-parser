@@ -15,11 +15,13 @@ public class Checker {
     public void check(AST ast) {
         variableTypes = new LinkedList<>();
         variableHashMap= new HashMap<>();
-        checkVariables(ast.root);
+        checkIfVariablesAreDefined(ast.root);
+        checkForColorsInOperations(ast.root);
     }
+
 /*CH01*/
     //Check if variables are defined
-    private void checkVariables(ASTNode node){
+    private void checkIfVariablesAreDefined(ASTNode node){
         findVariableAssignment(node);
         variableTypes.add(variableHashMap);
         findVariableReference(node);
@@ -32,7 +34,7 @@ public class Checker {
             Expression e = ((VariableAssignment) node).expression;
             variableHashMap.put(name, expressionType(e));
         }
-        node.getChildren().forEach(this::checkVariables);
+        node.getChildren().forEach(this::checkIfVariablesAreDefined);
     }
 
     //Find every node which is an instance of VariableReference
@@ -76,5 +78,45 @@ public class Checker {
             return ExpressionType.SCALAR;
         }
         return null;
+    }
+
+/*CH03*/
+    //Check if no colors used in operations
+    private void checkForColorsInOperations(ASTNode node){
+        //Find every node which is an instance of Operation
+        if(node instanceof Operation){
+           Expression lsh = ((Operation) node).lhs;
+           Expression rsh = ((Operation) node).rhs;
+
+           //Check if Expression is color
+            checkIfExpressionIsColor(node, lsh);
+            checkIfExpressionIsColor(node ,rsh);
+        }
+        node.getChildren().forEach(this::checkForColorsInOperations);
+    }
+
+    //Check if expression is a color
+    private void checkIfExpressionIsColor(ASTNode node, Expression e) {
+        checkIfExpressionIsColorLiteral(node, e);
+        checkIfExpressionIsColorVariable(node, e);
+    }
+
+    //Check if expression is a color
+    private void checkIfExpressionIsColorLiteral(ASTNode node, Expression e) {
+        if(e instanceof ColorLiteral){
+            node.setError("Color used in expression, value: "+((ColorLiteral) e).value);
+        }
+    }
+
+    //Check if variable is a color
+    private void checkIfExpressionIsColorVariable(ASTNode node, Expression e) {
+        if(e instanceof VariableReference){
+            String name = ((VariableReference)e).name;
+            for(HashMap<String, ExpressionType> varHash: variableTypes){
+                if(varHash.get(name) == ExpressionType.COLOR){
+                    node.setError("Variable in expression is color, variable: "+ name);
+                }
+            }
+        }
     }
 }
