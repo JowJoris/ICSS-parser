@@ -50,6 +50,9 @@ public class EvalExpressions implements Transform {
             if(node instanceof VariableReference){
                 return (VariableReference) node;
             }
+            if(node instanceof Operation){
+                return retrieveDeclarationVariable(node.getChildren());
+            }
         }
         return null;
     }
