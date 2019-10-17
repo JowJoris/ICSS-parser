@@ -1,122 +1,93 @@
 package nl.han.ica.icss.checker;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
+import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.types.*;
 
 public class Checker {
 
-    private LinkedList<HashMap<String,ExpressionType>> variableTypes;
-    private HashMap<String, ExpressionType> variableHashMap;
+    private HashMap<String, Expression> variableHashMap;
 
     public void check(AST ast) {
-        variableTypes = new LinkedList<>();
-        variableHashMap= new HashMap<>();
-        checkIfVariablesAreDefined(ast.root);
-        checkForColorsInOperations(ast.root);
-    }
+        variableHashMap = new HashMap<>();
+        findVariableAssignment(ast.root);
 
-/*CH01*/
-    //Check if variables are defined
-    private void checkIfVariablesAreDefined(ASTNode node){
-        findVariableAssignment(node);
-        variableTypes.add(variableHashMap);
-        findVariableReference(node);
+        //CH01
+        checkIfVariablesAreDefined(ast.root);
+
+        //CH03
+        checkForColorsInOperations(ast.root);
     }
 
     private void findVariableAssignment(ASTNode node) {
         //Find every node which is an instance of VariableAssignment
-        if(node instanceof VariableAssignment){
+        if (node instanceof VariableAssignment) {
             String name = ((VariableAssignment) node).name.name;
             Expression e = ((VariableAssignment) node).expression;
-            variableHashMap.put(name, expressionType(e));
+            variableHashMap.put(name, e);
         }
-        node.getChildren().forEach(this::checkIfVariablesAreDefined);
+        node.getChildren().forEach(this::findVariableAssignment);
     }
 
-    //Find every node which is an instance of VariableReference
-    private void findVariableReference(ASTNode node) {
-        if(node instanceof VariableReference){
+    /*CH01*/
+    private void checkIfVariablesAreDefined(ASTNode node) {
+        if (node instanceof VariableReference) {
             String name = ((VariableReference) node).name;
-            boolean varExists = checkVariableReferenceToVariableAssignment(name);
 
             //Set error if VariableReference node doesn't belong to VariableAssignment
-            if(!varExists){
+            if (!variableHashMap.containsKey(name)) {
                 node.setError("Variable reference: " + ((VariableReference) node).name + " is undefined");
             }
         }
     }
 
-    //Check if the VariableReference node also belongs to VariableAssignment
-    private boolean checkVariableReferenceToVariableAssignment(String name) {
-        for(HashMap<String, ExpressionType> varHash: variableTypes){
-            if(varHash.containsKey(name)){
-               return true;
-            }
-        }
-        return false;
-    }
-
-    //Get the ExpressionType from Expression
-    private ExpressionType expressionType(Expression e) {
-        if(e instanceof BoolLiteral){
-            return ExpressionType.BOOL;
-        }
-        if(e instanceof ColorLiteral){
-            return ExpressionType.COLOR;
-        }
-        if(e instanceof PercentageLiteral){
-            return ExpressionType.PERCENTAGE;
-        }
-        if(e instanceof PixelLiteral){
-            return ExpressionType.PIXEL;
-        }
-        if(e instanceof ScalarLiteral){
-            return ExpressionType.SCALAR;
-        }
-        return null;
-    }
-
-/*CH03*/
-    //Check if no colors used in operations
-    private void checkForColorsInOperations(ASTNode node){
+    /*CH02 & CH03*/
+    private void checkForColorsInOperations(ASTNode node) {
         //Find every node which is an instance of Operation
-        if(node instanceof Operation){
-           Expression lsh = ((Operation) node).lhs;
-           Expression rsh = ((Operation) node).rhs;
+        if (node instanceof Operation) {
 
-           //Check if Expression is color
-            checkIfExpressionIsColor(node, lsh);
-            checkIfExpressionIsColor(node ,rsh);
+            //CH02
+            checkIfOperandsAreEqual((Operation) node);
+            for (ASTNode child : node.getChildren()) {
+
+                //CH03
+                checkIfExpressionIsColor(node, (Expression) child);
+            }
         }
         node.getChildren().forEach(this::checkForColorsInOperations);
     }
 
-    //Check if expression is a color
-    private void checkIfExpressionIsColor(ASTNode node, Expression e) {
-        checkIfExpressionIsColorLiteral(node, e);
-        checkIfExpressionIsColorVariable(node, e);
-    }
-
-    //Check if expression is a color
-    private void checkIfExpressionIsColorLiteral(ASTNode node, Expression e) {
-        if(e instanceof ColorLiteral){
-            node.setError("Color used in expression, value: "+((ColorLiteral) e).value);
+    /*CH02*/
+    private void checkIfOperandsAreEqual(Operation node) {
+        if (node.lhs instanceof VariableReference) {
+            node.lhs = variableHashMap.get(((VariableReference) node.lhs).name);
+        }
+        if (node instanceof MultiplyOperation) {
+            if (!(((MultiplyOperation) node).lhs instanceof ScalarLiteral) &&
+                    !(((MultiplyOperation) node).rhs instanceof ScalarLiteral)) {
+                node.setError("Multiplying must be done with scalar value");
+            }
+        } else if (node.rhs instanceof MultiplyOperation) {
+            if (!(node.lhs.getClass().equals(((MultiplyOperation) node.rhs).lhs.getClass())) &&
+                    (!node.lhs.getClass().equals(((MultiplyOperation) node.rhs).rhs.getClass()))) {
+                node.setError("Addition or Subtraction must be done with equal literals");
+            }
+        } else if (!(node.lhs.getClass().equals(node.rhs.getClass()))) {
+            node.setError("Addition or Subtraction must be done with equal literals");
         }
     }
 
-    //Check if variable is a color
-    private void checkIfExpressionIsColorVariable(ASTNode node, Expression e) {
-        if(e instanceof VariableReference){
-            String name = ((VariableReference)e).name;
-            for(HashMap<String, ExpressionType> varHash: variableTypes){
-                if(varHash.get(name) == ExpressionType.COLOR){
-                    node.setError("Variable in expression is color, variable: "+ name);
-                }
-            }
+    //Check if expression is a color
+    private void checkIfExpressionIsColor(ASTNode node, Expression e) {
+        if (e instanceof ColorLiteral) {
+            node.setError("Color used in expression, value: " + ((ColorLiteral) e).value);
+        } else if (e instanceof VariableReference) {
+            String name = ((VariableReference) e).name;
+            if (variableHashMap.get(name) instanceof ColorLiteral)
+                node.setError("Variable in expression is color, variable: " + name);
         }
     }
 }

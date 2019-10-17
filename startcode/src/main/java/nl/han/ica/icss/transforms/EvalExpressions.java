@@ -12,41 +12,39 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Stack;
 
-import static nl.han.ica.icss.transforms.OperationSide.*;
+import static nl.han.ica.icss.transforms.OperationSide.LEFT;
+import static nl.han.ica.icss.transforms.OperationSide.RIGHT;
 
 public class EvalExpressions implements Transform {
 
-    private LinkedList<HashMap<String, Literal>> variableValues;
     private HashMap<String, Literal> variableValuesHashMap;
     private LinkedList<Expression> list;
     private Stack<Expression> stack;
 
     public EvalExpressions() {
-        variableValues = new LinkedList<>();
+        variableValuesHashMap = new HashMap<>();
+        list = new LinkedList<>();
+        stack = new Stack<>();
     }
 
     @Override
     public void apply(AST ast) {
-        variableValues = new LinkedList<>();
-        variableValuesHashMap = new HashMap<>();
-        list = new LinkedList<>();
-        stack = new Stack<>();
         retrieveAllVariables(ast.root);
-        findExpressionsAndOperationsInDeclarations(ast.root, ast.root.getChildren());
+        findVariablesAndOperationsInDeclarations(ast.root, ast.root.getChildren());
         findOperations(ast.root, ast.root.getChildren());
-        list.forEach(i -> System.out.println(i + " "));
     }
 
-    private void findExpressionsAndOperationsInDeclarations(ASTNode parent, ArrayList<ASTNode> children) {
+    private void findVariablesAndOperationsInDeclarations(ASTNode parent, ArrayList<ASTNode> children) {
         for (ASTNode child : children) {
-            if (parent instanceof Declaration && child instanceof Expression) {
-                findVariableReferenceInExpression((Declaration) parent, (Expression) child);
+            if (parent instanceof Declaration) {
+                if (child instanceof VariableReference) {
+                    ((Declaration) parent).expression = getDeclarationValueFromVariable((VariableReference) child);
+                }
+                if (child instanceof Operation) {
+                    findVariableReferenceInOperation((Operation) child);
+                }
             }
-            if (parent instanceof Operation) {
-                findVariableReferenceInOperation((Operation) parent);
-            }
-
-            findExpressionsAndOperationsInDeclarations(child, child.getChildren());
+            findVariablesAndOperationsInDeclarations(child, child.getChildren());
         }
     }
 
@@ -70,12 +68,6 @@ public class EvalExpressions implements Transform {
             } else if (side == RIGHT) {
                 ((Operation) parent).rhs = getDeclarationValueFromVariable((VariableReference) child);
             }
-        }
-    }
-
-    private void findVariableReferenceInExpression(Declaration parent, Expression child) {
-        if (child instanceof VariableReference) {
-            parent.expression = getDeclarationValueFromVariable((VariableReference) child);
         }
     }
 
