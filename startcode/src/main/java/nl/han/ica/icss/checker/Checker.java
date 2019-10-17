@@ -5,7 +5,6 @@ import java.util.HashMap;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
-import nl.han.ica.icss.ast.types.*;
 
 public class Checker {
 
