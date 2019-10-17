@@ -20,6 +20,9 @@ public class Checker {
 
         //CH03
         checkForColorsInOperations(ast.root);
+
+        //CH05
+        checkIfConditionIsBoolean(ast.root);
     }
 
     private void findVariableAssignment(ASTNode node) {
@@ -80,7 +83,7 @@ public class Checker {
         }
     }
 
-    //Check if expression is a color
+    /*CH03*/
     private void checkIfExpressionIsColor(ASTNode node, Expression e) {
         if (e instanceof ColorLiteral) {
             node.setError("Color used in expression, value: " + ((ColorLiteral) e).value);
@@ -89,5 +92,18 @@ public class Checker {
             if (variableHashMap.get(name) instanceof ColorLiteral)
                 node.setError("Variable in expression is color, variable: " + name);
         }
+    }
+
+    /*CH05*/
+    private void checkIfConditionIsBoolean(ASTNode node) {
+        if(node instanceof IfClause){
+            if(((IfClause) node).conditionalExpression instanceof VariableReference){
+                ((IfClause) node).conditionalExpression = variableHashMap.get(((VariableReference) ((IfClause) node).conditionalExpression).name);
+            }
+            if(!(((IfClause) node).conditionalExpression instanceof BoolLiteral)){
+                node.setError("Condition must be of type Boolean, current value: " + ((IfClause) node).conditionalExpression);
+            }
+        }
+        node.getChildren().forEach(this::checkIfConditionIsBoolean);
     }
 }

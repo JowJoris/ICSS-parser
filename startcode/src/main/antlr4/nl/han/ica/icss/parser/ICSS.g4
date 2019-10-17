@@ -55,7 +55,7 @@ idselector:ID_IDENT;
 tagselector:LOWER_IDENT;
 body: (ifclause | declaration)+;
 
-ifclause: IF BOX_BRACKET_OPEN variablereference BOX_BRACKET_CLOSE conditionmet;
+ifclause: IF BOX_BRACKET_OPEN (variablereference | boolliteral) BOX_BRACKET_CLOSE conditionmet;
 
 conditionmet: OPEN_BRACE (ifclause | declaration)+ CLOSE_BRACE;
 
