@@ -45,6 +45,7 @@ public class Checker {
                 node.setError("Variable reference: " + ((VariableReference) node).name + " is undefined");
             }
         }
+        node.getChildren().forEach(this::checkIfVariablesAreDefined);
     }
 
     /*CH02 & CH03*/
