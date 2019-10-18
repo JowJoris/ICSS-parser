@@ -17,7 +17,7 @@ public class Checker {
         //CH01
         checkIfVariablesAreDefined(ast.root);
 
-        //CH03
+        //CH02 + CH03
         checkForColorsInOperations(ast.root);
 
         //CH05
@@ -66,20 +66,40 @@ public class Checker {
     /*CH02*/
     private void checkIfOperandsAreEqual(Operation node) {
         if (node.lhs instanceof VariableReference) {
-            node.lhs = variableHashMap.get(((VariableReference) node.lhs).name);
+            Expression varValue = variableHashMap.get(((VariableReference) node.lhs).name);
+            if (varValue != null) {
+                node.lhs = varValue;
+            }
         }
-        if (node instanceof MultiplyOperation) {
-            if (!(((MultiplyOperation) node).lhs instanceof ScalarLiteral) &&
-                    !(((MultiplyOperation) node).rhs instanceof ScalarLiteral)) {
-                node.setError("Multiplying must be done with scalar value");
+
+        if (node.rhs instanceof VariableReference) {
+            Expression varValue = variableHashMap.get(((VariableReference) node.rhs).name);
+            if (varValue != null) {
+                node.rhs = varValue;
             }
-        } else if (node.rhs instanceof MultiplyOperation) {
-            if (!(node.lhs.getClass().equals(((MultiplyOperation) node.rhs).lhs.getClass())) &&
-                    (!node.lhs.getClass().equals(((MultiplyOperation) node.rhs).rhs.getClass()))) {
-                node.setError("Addition or Subtraction must be done with equal literals");
+        }
+        if (node instanceof MultiplyOperation || node.rhs instanceof MultiplyOperation) {
+            if (node.lhs instanceof PixelLiteral || node.lhs instanceof PercentageLiteral) {
+                if (node.rhs instanceof Operation) {
+                    if (!(((Operation) node.rhs).lhs instanceof ScalarLiteral) && !(((Operation) node.rhs).rhs instanceof ScalarLiteral)) {
+                        node.setError("Multiplying only allowed with at least one scalar value");
+                    } else if (((Operation) node.rhs).lhs instanceof ScalarLiteral && ((Operation) node.rhs).rhs instanceof ScalarLiteral) {
+                        node.setError("Multiplying only allowed with one scalar value if addition or subtraction of other literal follows");
+                    }
+                } else {
+                    if (!(node.rhs instanceof ScalarLiteral)) {
+                        node.setError("Multiplying only allowed with at least one scalar value");
+                    }
+                }
             }
-        } else if (!(node.lhs.getClass().equals(node.rhs.getClass()))) {
-            node.setError("Addition or Subtraction must be done with equal literals");
+        } else {
+            if (node.rhs instanceof Operation) {
+                if (!(node.lhs.getClass().equals(((Operation) node.rhs).lhs.getClass()))) {
+                    node.setError("Addition or subtraction only allowed with literals of same type");
+                }
+            } else if (!(node.lhs.getClass().equals(node.rhs.getClass()))) {
+                node.setError("Addition or subtraction only allowed with literals of same type");
+            }
         }
     }
 
@@ -96,11 +116,11 @@ public class Checker {
 
     /*CH05*/
     private void checkIfConditionIsBoolean(ASTNode node) {
-        if(node instanceof IfClause){
-            if(((IfClause) node).conditionalExpression instanceof VariableReference){
+        if (node instanceof IfClause) {
+            if (((IfClause) node).conditionalExpression instanceof VariableReference) {
                 ((IfClause) node).conditionalExpression = variableHashMap.get(((VariableReference) ((IfClause) node).conditionalExpression).name);
             }
-            if(!(((IfClause) node).conditionalExpression instanceof BoolLiteral)){
+            if (!(((IfClause) node).conditionalExpression instanceof BoolLiteral)) {
                 node.setError("Condition must be of type Boolean, current value: " + ((IfClause) node).conditionalExpression);
             }
         }
