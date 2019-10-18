@@ -102,9 +102,9 @@ public class EvalExpressions implements Transform {
     private PixelLiteral calculatePostFixStack() {
         for (Expression e : list) {
             if (e instanceof Operation) {
-                int left = findExpressionValue(stack.peek());
-                stack.pop();
                 int right = findExpressionValue(stack.peek());
+                stack.pop();
+                int left = findExpressionValue(stack.peek());
                 stack.pop();
                 stack.push(calculateOperation((Operation) e, left, right));
             } else {
