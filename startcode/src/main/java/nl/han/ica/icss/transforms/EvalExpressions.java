@@ -1,6 +1,7 @@
 package nl.han.ica.icss.transforms;
 
 import nl.han.ica.icss.ast.*;
+import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
 import nl.han.ica.icss.ast.literals.ScalarLiteral;
 import nl.han.ica.icss.ast.operations.AddOperation;
@@ -150,6 +151,8 @@ public class EvalExpressions implements Transform {
     private int findExpressionValue(Expression node) {
         if (node instanceof PixelLiteral) {
             return ((PixelLiteral) node).value;
+        } else if (node instanceof PercentageLiteral) {
+            return ((PercentageLiteral) node).value;
         } else {
             return ((ScalarLiteral) node).value;
         }
