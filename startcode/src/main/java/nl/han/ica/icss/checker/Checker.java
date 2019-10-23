@@ -118,7 +118,9 @@ public class Checker {
     private void checkIfConditionIsBoolean(ASTNode node) {
         if (node instanceof IfClause) {
             if (((IfClause) node).conditionalExpression instanceof VariableReference) {
-                ((IfClause) node).conditionalExpression = variableHashMap.get(((VariableReference) ((IfClause) node).conditionalExpression).name);
+                if (variableHashMap.get(((VariableReference) ((IfClause) node).conditionalExpression).name) != null) {
+                    ((IfClause) node).conditionalExpression = variableHashMap.get(((VariableReference) ((IfClause) node).conditionalExpression).name);
+                }
             }
             if (!(((IfClause) node).conditionalExpression instanceof BoolLiteral)) {
                 node.setError("Condition must be of type Boolean, current value: " + ((IfClause) node).conditionalExpression);
